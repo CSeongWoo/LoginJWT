@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.MemberJoinRequest;
 import com.example.demo.entity.Member;
 import com.example.demo.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +18,30 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder; 
 
     /**
-     * 회원가입 로직
+     * 회원가입
      */
     @Transactional
-    public Long join(Member member) {
-        String encodedPassword = passwordEncoder.encode(member.getPassword());
-        
-        // 엔티티를 직접 수정하기보다 Builder나 별도 메서드를 권장하지만, 일단 기본 필드 세팅
-        // 실제 구현 시에는 DTO를 받아 Member를 생성하는 로직이 들어갑니다.
-        
-        return memberRepository.save(member).getId();
+    public Long join(MemberJoinRequest request) {
+        // 1. 아이디 중복 체크
+        memberRepository.findByLoginId(request.getLoginId())
+                .ifPresent(m -> { throw new IllegalStateException("이미 존재하는 아이디입니다."); });
+
+        // 2. 비밀번호 암호화 및 저장
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        return memberRepository.save(request.toEntity(encodedPassword)).getId();
+    }
+
+    /**
+     * 로그인 검증 (JWT 발급 전 단계)
+     */
+    public Member login(String loginId, String password) {
+        Member member = memberRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("아이디가 존재하지 않습니다."));
+
+        // 비밀번호 일치 확인
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+        return member;
     }
 }
