@@ -9,5 +9,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class TokenResponse {
     private String accessToken; // 실제 jwt 토큰
+    private String refreshToken;
     private String tokenType; // "Bearer"
 }

@@ -34,6 +34,17 @@ public class Member {
     @Column(nullable = false)
     private Role role;
 
-    // 소셜 로그인 연동 시 모듈 확장을 위해 남겨두는 필드 (선택 사항)
-    private String provider; 
+    // 소셜 로그인 연동 시 모듈 확장을 위해 남겨두는 필드 
+    // 나중에 활용
+    private String provider;
+
+     //비밀번호 암호화 후 업데이트
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    //권한 설정 업데이트
+    public void updateRole(Role role) {
+        this.role = role;
+    }
 }
